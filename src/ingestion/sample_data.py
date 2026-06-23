@@ -127,3 +127,39 @@ def make_sample_price_history(
         steps = rng.normal(0.0003, 0.012, size=len(idx))
         data[tk] = start_price * np.exp(np.cumsum(steps))
     return pd.DataFrame(data, index=idx)
+
+
+def make_backtest_prices(
+    *,
+    tickers: tuple[str, ...] = ("ASSET_A", "ASSET_B", "ASSET_C"),
+    days: int = 750,
+    seed: int = 11,
+) -> pd.DataFrame:
+    """Genera prezzi giornalieri sintetici multi-asset per il backtest (Fase 2).
+
+    Random walk geometrico deterministico con drift e volatilità leggermente
+    diversi per asset, così le strategie producono risultati distinguibili.
+
+    Parameters
+    ----------
+    tickers:
+        Nomi degli asset (colonne).
+    days:
+        Numero di giorni di calendario di borsa (frequenza giornaliera).
+    seed:
+        Seme per la riproducibilità.
+
+    Returns
+    -------
+    pd.DataFrame
+        Prezzi di chiusura (indice = date, colonne = ticker).
+    """
+    rng = np.random.default_rng(seed)
+    idx = pd.date_range("2022-01-03", periods=days, freq="B")  # B = giorni feriali
+    data = {}
+    for i, tk in enumerate(tickers):
+        drift = 0.0002 + 0.0002 * i        # drift crescente per asset
+        vol = 0.010 + 0.004 * i            # volatilità crescente per asset
+        steps = rng.normal(drift, vol, size=days)
+        data[tk] = 100.0 * np.exp(np.cumsum(steps))
+    return pd.DataFrame(data, index=idx)

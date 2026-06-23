@@ -7,7 +7,7 @@ portfolio) con l'architettura già predisposta per le fasi successive.
 | Fase | Contenuto | Stato |
 |------|-----------|-------|
 | **1** | Ingestion dati (Fineco/Scalable) + metriche e grafici di portfolio | ✅ Completa |
-| 2 | Motore di backtest (`src/backtest/`) | 🟡 Stub |
+| **2** | Motore di backtest delle strategie (`src/backtest/`) | ✅ Completa |
 | 3 | Modelli ML (`src/ml/`) | 🟡 Stub |
 | 4 | Agente AI con Claude (`src/agent/`) + dashboard Streamlit (`dashboard/`) | 🟡 Stub |
 
@@ -116,7 +116,33 @@ richiesta). Per usare i dati reali, sostituisci la cella di caricamento con
 Grafici Plotly in `src/analysis/charts.py`: `plot_portfolio_value`, `plot_allocation_pie`,
 `plot_pnl_waterfall`, `plot_monthly_returns_heatmap`.
 
-## 5. Test
+## 5. Backtest delle strategie (Fase 2)
+
+Il motore in `src/backtest/` testa strategie di investimento sui prezzi storici.
+Una **strategia** trasforma i prezzi in *pesi target*; il **motore** simula il
+portafoglio (vettorizzato, senza look-ahead, con costi di transazione) e produce
+la *equity curve*. Le metriche di rischio riusano la Fase 1.
+
+```python
+from src.ingestion.sample_data import make_backtest_prices
+from src.backtest import BuyAndHold, SMACrossover, Momentum, compare_strategies
+from src.backtest.plots import plot_strategy_comparison
+
+prices = make_backtest_prices(days=750)              # o i tuoi prezzi reali
+results, table = compare_strategies(
+    prices, [BuyAndHold(), SMACrossover(20, 50), Momentum(60)], fee_bps=10
+)
+print(table)                                          # tabella di confronto
+plot_strategy_comparison(results).show()              # grafico equity curve
+```
+
+Strategie incluse: `BuyAndHold` (benchmark), `SMACrossover(fast, slow)`
+(incrocio medie mobili), `Momentum(lookback)`. Aggiungerne di nuove = creare una
+classe con `generate_weights(prices)` in `src/backtest/strategies.py`.
+
+Notebook dimostrativo: `notebooks/02_backtest_analysis.ipynb`.
+
+## 6. Test
 
 ```bash
 pip install pytest

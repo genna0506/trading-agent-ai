@@ -8,6 +8,8 @@ __pycache__/
 venv/
 .pytest_cache/
 .ipynb_checkpoints/
+# Artefatti generati dal renderer Plotly 'iframe' nei notebook
+iframe_figures/
 
 # Dati (non versionare gli export reali dei broker né i parquet)
 data/raw/*
